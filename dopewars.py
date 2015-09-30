@@ -58,9 +58,10 @@ def get_prices(leaveout=3):
 
 def get_messages(game):
     messages = []
-    if game['state'] == 'jet':
+    state = game['state']
+    if state == 'jet':
         messages = ['Where to, dude?']
-    elif game['state'] == 'buy_sell':
+    elif state == 'buy_sell':
         for drug in drugs:
             count = game['drugs'].get(drug, 0)
             price = game['prices'].get(drug)
@@ -70,6 +71,12 @@ def get_messages(game):
         messages.append("Debt $%d" % game['debt'])
         messages.append("Savings $%d" % game['bank'])
         messages.append("Coat %d/%d" % (get_total(game), game['coat']))
+    elif state == 'buy_select':
+        drug = game['select']
+        price = game['prices'][drug]
+        amount = game['cash'] / price
+        amount = amount if amount < 1000 else 'a lot'
+        messages = ["Buy %s at %d each, you can afford %s" % (drug, price, amount)]
     return messages
 
 def get_total(game):
