@@ -70,10 +70,39 @@ def goto_trade(game, append=False):
     game['options'] = [buy, sell, jet, quit]
     game['messages'] += trade_messages(game) + ['buy sell jet quit']
 
+def gameover_messages(game):
+    if game['cops'] == -1:
+        return ["You're dead.", 'Congratulations.']
+    elif game['cash'] < 0:
+        return ["The Loan Shark's thugs broke your legs."]
+    elif game['cash'] > 1000000:
+        return ['You retired a millionaire in the Carribbean.']
+    elif game['cash'] > 2000:
+        return ['Congratulations!', "You didn't do half bad."]
+    else:
+        return ["You didn't make any money!", 'Better luck next time.']
+
+def goto_finish(game):
+    game['cash'] += game['bank'] - game['debt']
+    game['prices'] = get_prices(0)
+    for drug in drugs:
+        game['cash'] += game['prices'][drug] * game['drugs'].get(drug, 0)
+        game['drugs'][drug] = 0
+    game['messages'] = [
+        'Game Over',
+        "Final Cash: $%d" % game['cash'],
+    ] + gameover_messages(game) + [
+        'High Scores', # XXX
+        'Start New Game',
+        'start'
+    ]
+    game['options'] = []
+    game['finish'] = True
+
 #action
 def quit(game, input):
     if input == 'quit' or input == 'q':
-        game['finish'] = True
+        goto_finish(game)
         return True
 
 #action
@@ -237,6 +266,9 @@ def jet_location(game, input):
     game['days'] -= 1
     game['prices'] = get_prices()
     game['location'] = location
+    if game['days'] == 0:
+        goto_finish(game)
+        return True
     goto_trade(game)
     return True
 
@@ -290,18 +322,6 @@ def process(id, input):
         if option(game, input):
             return True
     assert 0, 'invalid input'
-
-#def jet(game, location):
-#    try:
-#        location = locations[int(location)]
-#    except:
-#        pass
-#    if location == game['location'] or location not in locations:
-#        return
-#    game = advance(game)
-#    game['state'] = 'trade'
-#    #dice_fuzz(state)
-#    return game
 
 #@public
 #def fuzz_event(game):
@@ -371,6 +391,8 @@ def main():
         except:
             import traceback
             traceback.print_exc()
+    print
+    print get_message(id)
 
 if __name__ == '__main__':
     main()
