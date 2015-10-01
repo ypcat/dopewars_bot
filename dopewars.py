@@ -85,6 +85,10 @@ def buy_amount(game, input):
             game['messages'] = ['Buy Drugs', 'You cannot afford any of that drug.']
             goto_trade(game, append=True)
             return True
+        if get_total(game) + amount > game['coat']:
+            game['messages'] = ['Sell Drugs', 'You do not have enough room in your trenchcoat.']
+            goto_trade(game, append=True)
+            return True
         game['drugs'][drug] = game['drugs'].get(drug, 0) + amount
         game['cash'] -= price * amount
         goto_trade(game)
@@ -92,7 +96,9 @@ def buy_amount(game, input):
 
 #action
 def buy_max(game, input):
-    pass
+    if input == 'max':
+        amount = game['cash'] / game['prices'][game['drug']]
+        return buy_amount(game, str(amount))
 
 #action
 def buy_drug(game, input):
@@ -104,43 +110,95 @@ def buy_drug(game, input):
         goto_trade(game, append=True)
         return True
     price = game['prices'][drug]
-    max_amount = game['cash'] / price
+    max_amount = min(game['coat'] - get_total(game), game['cash'] / price)
     amount = max_amount if max_amount < 1000 else 'a lot'
     game['drug'] = drug
     game['options'] = [buy_amount, buy_max, cancel, quit]
     game['messages'] = [
-        "Enter Amount",
-        "Buy %s at %d each, you can afford %s" % (drug, price, amount),
+        "Buy %s" % drug,
+        "At %d each, you can afford %s" % (price, amount),
+        "How many do you want to buy?",
         cash_message(game),
         "0-%d max cancel quit" % max_amount
     ]
     return True
 
-def buy_messages(game):
-    return ["%d %s" % pair for pair in enumerate(price_messages(game), 1)]
-
 #action
 def buy(game, input):
     if input == 'buy':
         game['options'] = [buy_drug, cancel, quit]
-        game['messages'] = ['Buy Drugs'] + buy_messages(game) + [
+        game['messages'] = ['Buy Drugs'] + price_messages(game) + [
             cash_message(game),
             "%s cancel quit" % selector(drugs)
         ]
         return True
 
 #action
+def sell_amount(game, input):
+    amount = int(input) if input.isdigit() else -1
+    if amount >= 0:
+        drug = game['drug']
+        price = game['prices'][drug]
+        max_amount = game['drugs'][drug]
+        if amount > max_amount:
+            game['messages'] = ['Sell Drugs', "You don't have that much of that drug to sell."]
+            goto_trade(game, append=True)
+            return True
+        game['drugs'][drug] = game['drugs'].get(drug, 0) - amount
+        game['cash'] += price * amount
+        goto_trade(game)
+        return True
+
+#action
+def sell_max(game, input):
+    if input == 'max':
+        amount = game['drugs'][game['drug']]
+        return sell_amount(game, str(amount))
+
+#action
+def sell_drug(game, input):
+    drug = select(drugs, input)
+    if not drug:
+        return
+    if drug not in game['prices']:
+        game['messages'] = ['Nobody wants to buy that drug here.']
+        goto_trade(game, append=True)
+        return True
+    if drug not in game['drugs']:
+        game['messages'] = ['You do not have any of that drug to sell.']
+        goto_trade(game, append=True)
+        return True
+    price = game['prices'][drug]
+    max_amount = game['drugs'][drug]
+    game['drug'] = drug
+    game['options'] = [sell_amount, sell_max, cancel, quit]
+    game['messages'] = [
+        "Sell %s" % drug,
+        "You can sell up to %d at %d each." % (max_amount, price),
+        "How many do you want to sell?",
+        cash_message(game),
+        "0-%d max cancel quit" % max_amount
+    ]
+    return True
+
+#action
 def sell(game, input):
-    pass
+    if input == 'sell':
+        game['options'] = [sell_drug, cancel, quit]
+        game['messages'] = ['Sell Drugs'] + price_messages(game) + [
+            cash_message(game),
+            "%s cancel quit" % selector(drugs)
+        ]
+        return True
 
 def format_price(game, drug):
     amount = game['drugs'].get(drug, 0)
     price = game['prices'].get(drug)
-    price = ("$%d" % price) if price else 'None'
+    price = "$%d" % price if price else 'None'
     return "%s price: %s you have: %d" % (drug, price, amount)
 
 def price_messages(game):
-    return [format_price(game, drug) for drug in drugs]
+    return ["%d %s" % (i, format_price(game, drug)) for i, drug in enumerate(drugs, 1)]
 
 def cash_message(game):
     return "Cash: $%d" % game['cash']
