@@ -5,7 +5,7 @@ import telegram
 from dopewars import start, is_finish, get_message, process
 
 def main():
-    token = open('token').read()
+    token = open('token').read().strip()
     bot = telegram.Bot(token)
     update_id = 0
     sessions = {}
