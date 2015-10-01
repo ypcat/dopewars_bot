@@ -209,7 +209,7 @@ def format_price(game, drug):
     amount = game['drugs'].get(drug, 0)
     price = game['prices'].get(drug)
     price = "$%d" % price if price else 'None'
-    return "%s price: %s you have: %d" % (drug, price, amount)
+    return "%s %s carry %d" % (drug, price, amount)
 
 def price_messages(game):
     return ["%d %s" % (i, format_price(game, drug)) for i, drug in enumerate(drugs, 1)]
@@ -218,13 +218,12 @@ def cash_message(game):
     return "Cash: $%d" % game['cash']
 
 def trade_messages(game):
-    return price_messages(game) + [
+    return [game['location']] + price_messages(game) + [
         cash_message(game),
         "Debt: $%d" % game['debt'],
         "Savings: $%d" % game['bank'],
         "Coat: %d/%d" % (get_total(game), game['coat']),
         "Time remaining: %d day%s" %(game['days'], 's' if game['days'] > 1 else ''),
-        "Location: %s" % game['location']
     ]
 
 #action
@@ -248,7 +247,7 @@ def cancel(game, input):
         return True
 
 def jet_messages():
-    return ['Jet', 'Where to, dude?'] + ["%d %s" % pair for pair in enumerate(locations, 1)]
+    return ['Where to, dude?'] + ["%d %s" % pair for pair in enumerate(locations, 1)]
 
 #action
 def jet(game, input):
@@ -289,7 +288,7 @@ def process(id, input):
     game = games[id]
     for option in game['options'][:]:
         if option(game, input):
-            return
+            return True
     assert 0, 'invalid input'
 
 #def jet(game, location):

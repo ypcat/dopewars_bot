@@ -15,14 +15,20 @@ def main():
                 update_id = update.update_id + 1
                 chat_id = update.message.chat_id
                 input = update.message.text.encode('utf8')
+                name = update.message.from_user.name
                 text = ''
+                print name, input
                 if input == 'start':
-                    id = start(update.from_user.name)
+                    id = start(name)
                     sessions[chat_id] = id
+                    print "start new game, chat id %s, game id %d" % (chat_id, id)
                     text = get_message(id)
-                elif chat_id in sessions and process(sessions[chat_id], input):
-                    text = get_message(id)
+                elif chat_id in sessions and not is_finish(id):
+                    id = sessions[chat_id]
+                    if process(id, input):
+                        text = get_message(id)
                 if text:
+                    print text
                     bot.sendMessage(chat_id=chat_id, text=text)
             except:
                 import traceback
