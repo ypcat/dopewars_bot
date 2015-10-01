@@ -3,6 +3,8 @@
 from operator import add, mul, div
 import random
 
+__all__ = ['start', 'is_finish', 'get_message', 'process']
+
 locations = ['Bronx', 'Ghetto', 'Central Park', 'Manhattan', 'Coney Island', 'Brooklyn']
 
 drugs = ['Acid', 'Cocaine', 'Ludes', 'PCP', 'Heroin', 'Weed', 'Shrooms', 'Speed']
@@ -282,7 +284,7 @@ def start(name):
     }
     return id
 
-def transition(id, input):
+def process(id, input):
     assert id in games, 'invalid id'
     game = games[id]
     for option in game['options'][:]:
@@ -366,7 +368,7 @@ def main():
             print
             print get_message(id)
             input = raw_input('> ')
-            transition(id, input)
+            process(id, input)
         except:
             import traceback
             traceback.print_exc()
