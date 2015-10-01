@@ -132,6 +132,12 @@ def buy(game, input):
             "%s cancel quit" % selector(drugs)
         ]
         return True
+    args = input.split()
+    if len(args) == 3 and args[0] == 'buy':
+        r = buy_drug(game, args[1])
+        if buy_amount in game['options']:
+            return buy_amount(game, args[2]) or buy_max(game, args[2])
+        return r
 
 #action
 def sell_amount(game, input):
@@ -190,6 +196,12 @@ def sell(game, input):
             "%s cancel quit" % selector(drugs)
         ]
         return True
+    args = input.split()
+    if len(args) == 3 and args[0] == 'sell':
+        r = sell_drug(game, args[1])
+        if sell_amount in game['options']:
+            return sell_amount(game, args[2]) or sell_max(game, args[2])
+        return r
 
 def format_price(game, drug):
     amount = game['drugs'].get(drug, 0)
@@ -242,6 +254,9 @@ def jet(game, input):
         game['options'] = [jet_location, cancel, quit]
         game['messages'] = jet_messages() + ["%s cancel quit" % selector(locations)]
         return True
+    args = input.split()
+    if len(args) == 2 and args[0] == 'jet':
+        return jet_location(game, args[1])
 
 def start(name):
     id = randint()
