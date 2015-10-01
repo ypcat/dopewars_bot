@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+# TODO high score
+# TODO bank
+# TODO loan shark
+# TODO fuzz
+# TODO clear finished games
+
 from operator import add, mul, div
 import random
 
@@ -69,6 +75,7 @@ def goto_trade(game, append=False):
         game['messages'] = []
     game['options'] = [buy, sell, jet, quit]
     game['messages'] += trade_messages(game) + ['buy sell jet quit']
+    return True
 
 def gameover_messages(game):
     if game['cops'] == -1:
@@ -98,12 +105,12 @@ def goto_finish(game):
     ]
     game['options'] = []
     game['finish'] = True
+    return True
 
 #action
 def quit(game, input):
     if input == 'quit' or input == 'q':
-        goto_finish(game)
-        return True
+        return goto_finish(game)
 
 #action
 def buy_amount(game, input):
@@ -114,16 +121,13 @@ def buy_amount(game, input):
         max_amount = game['cash'] / price
         if amount > max_amount:
             game['messages'] = ['Buy Drugs', 'You cannot afford any of that drug.']
-            goto_trade(game, append=True)
-            return True
+            return goto_trade(game, append=True)
         if get_total(game) + amount > game['coat']:
             game['messages'] = ['Sell Drugs', 'You do not have enough room in your trenchcoat.']
-            goto_trade(game, append=True)
-            return True
+            return goto_trade(game, append=True)
         game['drugs'][drug] = game['drugs'].get(drug, 0) + amount
         game['cash'] -= price * amount
-        goto_trade(game)
-        return True
+        return goto_trade(game)
 
 #action
 def buy_max(game, input):
@@ -138,8 +142,7 @@ def buy_drug(game, input):
         return
     if drug not in game['prices']:
         game['messages'] = ['Nobody is selling that drug here.']
-        goto_trade(game, append=True)
-        return True
+        return goto_trade(game, append=True)
     price = game['prices'][drug]
     max_amount = min(game['coat'] - get_total(game), game['cash'] / price)
     amount = max_amount if max_amount < 1000 else 'a lot'
@@ -179,12 +182,10 @@ def sell_amount(game, input):
         max_amount = game['drugs'][drug]
         if amount > max_amount:
             game['messages'] = ['Sell Drugs', "You don't have that much of that drug to sell."]
-            goto_trade(game, append=True)
-            return True
+            return goto_trade(game, append=True)
         game['drugs'][drug] = game['drugs'].get(drug, 0) - amount
         game['cash'] += price * amount
-        goto_trade(game)
-        return True
+        return goto_trade(game)
 
 #action
 def sell_max(game, input):
@@ -199,12 +200,10 @@ def sell_drug(game, input):
         return
     if drug not in game['prices']:
         game['messages'] = ['Nobody wants to buy that drug here.']
-        goto_trade(game, append=True)
-        return True
+        return goto_trade(game, append=True)
     if drug not in game['drugs']:
         game['messages'] = ['You do not have any of that drug to sell.']
-        goto_trade(game, append=True)
-        return True
+        return goto_trade(game, append=True)
     price = game['prices'][drug]
     max_amount = game['drugs'][drug]
     game['drug'] = drug
@@ -251,7 +250,8 @@ def trade_messages(game):
         cash_message(game),
         "Debt: $%d" % game['debt'],
         "Savings: $%d" % game['bank'],
-        "Coat: %d/%d" % (get_total(game), game['coat']),
+        "Coat: %d/%d" % (get_total(game), game['coat'])
+    ] + (['Gun'] if game['guns'] else []) + [
         "Time remaining: %d day%s" %(game['days'], 's' if game['days'] > 1 else ''),
     ]
 
@@ -266,17 +266,12 @@ def jet_location(game, input):
     game['days'] -= 1
     game['prices'] = get_prices()
     game['location'] = location
-    if game['days'] == 0:
-        goto_finish(game)
-        return True
-    goto_trade(game)
-    return True
+    return fuzz_event(game)
 
 #action
 def cancel(game, input):
     if input == 'cancel':
-        goto_trade(game)
-        return True
+        return goto_trade(game)
 
 def jet_messages():
     return ['Where to, dude?'] + ["%d %s" % pair for pair in enumerate(locations, 1)]
@@ -311,7 +306,8 @@ def start(name):
         'drug': '',
         'options': [jet_location, quit],
         'messages': jet_messages() + ["%s quit" % selector(locations)],
-        'finish': False
+        'finish': False,
+        'modal': {}
     }
     return id
 
@@ -323,50 +319,123 @@ def process(id, input):
             return True
     assert 0, 'invalid input'
 
-#@public
-#def fuzz_event(game):
-#    if dice(7) and game['days'] > 0 and get_total(game) > 0:
-#        return dict(game, options=['fight', 'escape'])
-#    return finish_event(game)
+def fuzz_event(game):
+    if dice(7) and game['days'] > 0 and get_total(game) > 0:
+        return goto_fuzz(game)
+    return finish_event(game)
 
-#@public
-#def finish_event(game):
-#    if game['days'] == 0:
-#        pass # XXX finish
-#    return coat_event(game)
+def goto_fuzz(game):
+    print 'NotImplemented'
+    return finish_event(game) # XXX
 
-#@public
-#def coat_event(game):
-#    if dice(10):
-#        return dict(game, options=['buycoat', 'notbuycoat'])
-#    return gun_event(game)
+def finish_event(game):
+    if game['days'] == 0:
+        return goto_finish(game)
+    return coat_event(game)
 
-#@public
-#def gun_event(game):
-#    if game['guns'] == 0 and dice(10):
-#        return dict(game, options=['buygun', 'notbuygun'])
-#    return random_events(game)
+def coat_event(game):
+    if dice(10):
+        game['messages'] = [
+            'Buy a Bigger Coat',
+            'Would you like to buy a trenchcoat with more pockets for $200?',
+            'no yes quit'
+        ]
+        return modal(game, yes=buy_coat, no=gun_event)
+    return gun_event(game)
 
-#@public
-#def random_events(game):
-#    for event in events:
-#        if dice(event['freq']) and event['drug'] in game['prices']:
-#            game['messages'].append(event['message'])
-#            price = event['op'](game['prices'][event['drug']], event['amount'])
-#            game['prices'][event['drug']] = price
-#    return loan_shark_event(game)
+def buy_coat(game):
+    if game['cash'] < 200:
+        return lack_money(game, ok=gun_event)
+    game['cash'] -= 200
+    game['coat'] += 40
+    return gun_event(game)
 
-#@public
-#def loan_shark_event(game):
-#    if location == 'Bronx':
-#        return dict(game, options=['visit_loan_shark', 'not_visit_loan_shark'])
-#    return bank_event(game)
+def gun_event(game):
+    if game['guns'] == 0 and dice(10):
+        game['messages'] = [
+            'Buy a Gun',
+            'Would you like to buy a gun for $400?',
+            'no yes quit'
+        ]
+        return modal(game, yes=buy_gun, no=random_events)
+    return random_events(game)
 
-#@public
-#def bank_event(game):
-#    if location == 'Bronx':
-#        return dict(game, options=['visit_bank', 'not_visit_bank'])
-#    return dict(game, options=['buy', 'sell', 'jet'])
+def buy_gun(game):
+    if game['cash'] < 400:
+        return lack_money(game, ok=random_events)
+    game['cash'] -= 400
+    game['guns'] = 1
+    return random_events(game)
+
+def random_events(game):
+    messages = []
+    for event in events:
+        drug = event['drug']
+        if dice(event['freq']) and drug in game['prices']:
+            messages.append(event['message'])
+            if event['op'] == add:
+                game['drugs'][drug] = game['drugs'].get(drug, 0) + event['amount']
+            else:
+                price = event['op'](game['prices'][drug], event['amount'])
+            game['prices'][drug] = price
+    if messages:
+        game['messages'] = ['News Flash'] + messages + ['ok quit']
+        return modal(game, ok=loan_shark_event)
+    return loan_shark_event(game)
+
+def lack_money(game, **kw):
+    game['messages'] = ["Money", "You do not have that much money.", "ok quit"]
+    return modal(game, **kw)
+
+def loan_shark_event(game):
+    if game['location'] == 'Bronx':
+        messages = ['Loan Shark', 'Would you like to visit the Loan Shark?', 'no yes quit']
+        game['messages'] = messages
+        return modal(game, yes=loan_shark, no=bank_event)
+    return bank_event(game)
+
+def loan_shark(game):
+    game['messages'] = [
+        'Loan Shark Options',
+        'What would you like to do?',
+        'done repay borrow quit'
+    ]
+    return modal(game, done=bank_event, repay=repay, borrow=borrow)
+
+def repay(game):
+    raise NotImplementedError
+
+def borrow(game):
+    raise NotImplementedError
+
+def bank_event(game):
+    if game['location'] == 'Bronx':
+        game['messages'] = ['Bank', 'Would you like to visit the Bank?', 'no yes quit']
+        return modal(game, yes=bank, no=goto_trade)
+    return goto_trade(game)
+
+def bank(game):
+    game['messages'] = [
+        'Bank Options',
+        'What would you like to do at the Bank?',
+        'done withdraw deposit quit'
+    ]
+    return modal(game, done=goto_trade, withdraw=withdraw, deposit=deposit)
+
+def withdraw(game):
+    raise NotImplementedError
+
+def deposit(game):
+    raise NotImplementedError
+
+def modal(game, **kw):
+    game['options'] = [answer, quit]
+    game['modal'] = kw
+    return True
+
+def answer(game, input):
+    if input in game['modal']:
+        return game['modal'][input](game)
 
 def is_finish(id):
     # XXX garbage collection
