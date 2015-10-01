@@ -62,6 +62,12 @@ def select(items, input):
 def selector(items):
     return "1-%d" % len(items)
 
+def goto_trade(game, append=False):
+    if not append:
+        game['messages'] = []
+    game['options'] = [buy, sell, jet, quit]
+    game['messages'] += trade_messages(game) + ['buy sell jet quit']
+
 #action
 def quit(game, input):
     if input == 'quit' or input == 'q':
@@ -69,16 +75,59 @@ def quit(game, input):
         return True
 
 #action
+def buy_amount(game, input):
+    amount = int(input) if input.isdigit() else -1
+    if amount >= 0:
+        drug = game['drug']
+        price = game['prices'][drug]
+        max_amount = game['cash'] / price
+        if amount > max_amount:
+            game['messages'] = ['Buy Drugs', 'You cannot afford any of that drug.']
+            goto_trade(game, append=True)
+            return True
+        game['drugs'][drug] = game['drugs'].get(drug, 0) + amount
+        game['cash'] -= price * amount
+        goto_trade(game)
+        return True
+
+#action
+def buy_max(game, input):
+    pass
+
+#action
+def buy_drug(game, input):
+    drug = select(drugs, input)
+    if not drug:
+        return
+    if drug not in game['prices']:
+        game['messages'] = ['Nobody is selling that drug here.']
+        goto_trade(game, append=True)
+        return True
+    price = game['prices'][drug]
+    max_amount = game['cash'] / price
+    amount = max_amount if max_amount < 1000 else 'a lot'
+    game['drug'] = drug
+    game['options'] = [buy_amount, buy_max, cancel, quit]
+    game['messages'] = [
+        "Enter Amount",
+        "Buy %s at %d each, you can afford %s" % (drug, price, amount),
+        cash_message(game),
+        "0-%d max cancel quit" % max_amount
+    ]
+    return True
+
+def buy_messages(game):
+    return ["%d %s" % pair for pair in enumerate(price_messages(game), 1)]
+
+#action
 def buy(game, input):
     if input == 'buy':
-        pass
-#    if state == 'buy_select':
-#        drug = game['select']
-#        price = game['prices'][drug]
-#        amount = game['cash'] / price
-#        amount = amount if amount < 1000 else 'a lot'
-#        messages = ["Buy %s at %d each, you can afford %s" % (drug, price, amount)]
-#    return messages
+        game['options'] = [buy_drug, cancel, quit]
+        game['messages'] = ['Buy Drugs'] + buy_messages(game) + [
+            cash_message(game),
+            "%s cancel quit" % selector(drugs)
+        ]
+        return True
 
 #action
 def sell(game, input):
@@ -90,22 +139,24 @@ def format_price(game, drug):
     price = ("$%d" % price) if price else 'None'
     return "%s price: %s you have: %d" % (drug, price, amount)
 
+def price_messages(game):
+    return [format_price(game, drug) for drug in drugs]
+
+def cash_message(game):
+    return "Cash: $%d" % game['cash']
+
 def trade_messages(game):
-    return [format_price(game, drug) for drug in drugs] + [
-        "Cash $%d" % game['cash'],
-        "Debt $%d" % game['debt'],
-        "Savings $%d" % game['bank'],
-        "Coat %d/%d" % (get_total(game), game['coat']),
+    return price_messages(game) + [
+        cash_message(game),
+        "Debt: $%d" % game['debt'],
+        "Savings: $%d" % game['bank'],
+        "Coat: %d/%d" % (get_total(game), game['coat']),
         "Time remaining: %d day%s" %(game['days'], 's' if game['days'] > 1 else ''),
-        "You are at %s" % game['location']
+        "Location: %s" % game['location']
     ]
 
-def goto_trade(game):
-    game['options'] = [buy, sell, jet, quit]
-    game['messages'] = trade_messages(game) + ['buy sell jet quit'] # XXX +=
-
 #action
-def jet2(game, input):
+def jet_location(game, input):
     location = select(locations, input)
     if not location:
         return
@@ -124,14 +175,14 @@ def cancel(game, input):
         goto_trade(game)
         return True
 
-def jet_messages(game):
-    return ['Where to, dude?'] + ["%d %s" % pair for pair in enumerate(locations, 1)]
+def jet_messages():
+    return ['Jet', 'Where to, dude?'] + ["%d %s" % pair for pair in enumerate(locations, 1)]
 
 #action
 def jet(game, input):
     if input == 'jet':
-        game['options'] = [jet2, cancel, quit]
-        game['messages'] = jet_messages(game) + ["%s cancel quit" % selector(locations)]
+        game['options'] = [jet_location, cancel, quit]
+        game['messages'] = jet_messages() + ["%s cancel quit" % selector(locations)]
         return True
 
 def start(name):
@@ -152,8 +203,8 @@ def start(name):
         'cops': 3,
         'prices': {},
         'drug': '',
-        'options': [jet2, quit],
-        'messages': jet_messages({}) + ["%s quit" % selector(locations)],
+        'options': [jet_location, quit],
+        'messages': jet_messages() + ["%s quit" % selector(locations)],
         'finish': False
     }
     return id
