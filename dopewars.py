@@ -79,7 +79,7 @@ def buy_drug_messages(game):
         "At %d each, you can afford %s" % (game['prices'][game['drug']], get_display_max(game)),
         "How many do you want to buy?",
         cash_message(game),
-        "0-%d max cancel quit" % get_max_amount(game)
+        "0-%d cancel max quit" % get_max_amount(game)
     ]
 
 def buy_messages(game):
@@ -94,14 +94,8 @@ def sell_drug_messages(game):
         "You can sell up to %d at %d each." % (game['drugs'][game['drug']], game['prices'][game['drug']]),
         "How many do you want to sell?",
         cash_message(game),
-        "0-%d max cancel quit" % game['drugs'][game['drug']]
+        "0-%d cancel max quit" % game['drugs'][game['drug']]
     ]
-
-def location_message(game):
-    return "Current Location: %s" % game['location']
-
-def cash_message(game):
-    return "Cash: $%d" % game['cash']
 
 def price_messages(game):
     def price_message(i, drug):
@@ -116,11 +110,7 @@ def sell_messages(game):
     ]
 
 def coat_event_messages(game):
-    return [
-        'Buy a Bigger Coat',
-        'Would you like to buy a trenchcoat with more pockets for $200?',
-        'no yes quit'
-    ]
+    return ['Buy a Bigger Coat', 'Would you like to buy a trenchcoat with more pockets for $200?', 'no yes quit']
 
 def gun_messages(game):
     return ['Buy a Gun', 'Would you like to buy a gun for $400?', 'no yes quit']
@@ -146,10 +136,10 @@ def no_buyers_messages(game):
 def no_drugs_messages(game):
     return ['You do not have any of that drug to sell.', 'ok quit']
 
-def loan_shark_event_messages(game):
+def shark_event_messages(game):
     return ['Loan Shark', 'Would you like to visit the Loan Shark?', 'no yes quit']
 
-def loan_shark_messages(game):
+def shark_messages(game):
     return ['Loan Shark Options', 'What would you like to do?', 'done repay borrow quit']
 
 def bank_event_messages(game):
@@ -157,6 +147,71 @@ def bank_event_messages(game):
 
 def bank_messages(game):
     return ['Bank Options', 'What would you like to do at the Bank?', 'done withdraw deposit quit']
+
+def enter_highscore_messages(game):
+    return ['New High Score', 'You have achieved a new high score!', 'ok quit']
+
+def lack_bank_messages(game):
+    return ['Money', 'You do not have that much money in the bank.', 'ok quit']
+
+def over_pay_messages(game):
+    return ['Money', 'You should not overpay the Loan Shark.', 'ok quit']
+
+def no_more_loans_messages(game):
+    return ['Loan Shark', 'The Loan Shark will not loan you any more money today.', 'ok quit']
+
+def borrow_limit_messages(game):
+    return [
+        'Credit Risk',
+        'The Loan Shark is unwilling to loan you that much money.',
+        'He will loan you a maximum of $%d' % get_borrow_limit(game),
+        'ok quit'
+    ]
+
+def no_debt_messages(game):
+    return ['Money', 'You do not have any debt.', 'ok quit']
+
+def no_gun_messages(game):
+    return ['Gun', 'You do not have a gun.', 'ok quit']
+
+def cops_messages(game):
+    return [
+        'Police', 'Officer Hardass %schasing you!' % cops_message(game),
+        'What do you do?',
+        'run fight quit'
+    ]
+
+def ran_messages(game):
+    return ['Police', 'You lost them in the alleys.', 'ok quit']
+
+def miss_cops_messages(game):
+    return ['Police', 'You shot at the cops, but missed.', 'ok quit']
+
+def hit_messages(game):
+    return ['Police', 'You shot and killed one of the cops.', 'ok quit']
+
+def kill_messages(game):
+    return ['Police', 'The cops shot you.  You died.', 'ok quit']
+
+def remain_messages(game):
+    return [
+        'Police',
+        'Officer Hardass %sstill chasing you!' % cops_message(game),
+        'What do you do?',
+        'run fight quit'
+    ]
+
+def miss_you_messages(game):
+    return ['Police', 'The cops shot at you, but missed.', 'ok quit']
+
+def wounded_messages(game):
+    return ['Police', 'The cops shot you, and you are wounded.', 'ok quit']
+
+def seize_messages(game):
+    return ['Busted!', 'The cops seized all your dope and half your cash.', 'ok quit']
+
+def caught_messages(game):
+    return ['Police', 'You ran into a dead end, and the cops found you.', 'ok quit']
 
 def gameover_messages(game):
     return (["You're dead.", 'Congratulations.'] if game['cops'] == -1 else
@@ -166,7 +221,7 @@ def gameover_messages(game):
             ["You didn't make any money!", 'Better luck next time.'])
 
 def highscore_messages(game):
-    return [] #XXX
+    return ['High Scores'] #XXX
 
 def finish_messages(game):
     return [
@@ -174,23 +229,14 @@ def finish_messages(game):
         "Final Cash: %s$%d" % ('-' if game['cash'] < 0 else '', abs(game['cash'])),
     ] + gameover_messages(game) + highscore_messages(game) + ['start']
 
-def pick(input, items):
-    try:
-        return items[int(input) - 1]
-    except:
-        pass
+def location_message(game):
+    return "Current Location: %s" % game['location']
 
-def get_prices(leaveout=3):
-    prices = {drug: random.randint(*price_range[drug]) for drug in drugs}
-    for i in range(leaveout):
-        prices[random.choice(drugs)] = 0
-    return prices
+def cash_message(game):
+    return "Cash: $%d" % game['cash']
 
-def dice(n):
-    return random.getrandbits(32) % n == 0
-
-def slider(items):
-    return "1-%d" % len(items)
+def cops_message(game):
+    return ''
 
 def get_total(game):
     return sum(game['drugs'].values())
@@ -204,6 +250,27 @@ def get_display_max(game):
 
 def get_max_amount(game):
     return min(game['coat'] - get_total(game), game['cash'] / game['prices'][game['drug']])
+
+def get_borrow_limit(game):
+    return 0#XXX
+
+def get_prices(leaveout=3):
+    prices = {drug: random.randint(*price_range[drug]) for drug in drugs}
+    for i in range(leaveout):
+        prices[random.choice(drugs)] = 0
+    return prices
+
+def pick(input, items):
+    try:
+        return items[int(input) - 1]
+    except:
+        pass
+
+def dice(n):
+    return random.getrandbits(32) % n == 0
+
+def slider(items):
+    return "1-%d" % len(items)
 
 def make_options(**kw):
     return [lambda game: kw.get(game['input'], lambda game: None)(game)] if kw else []
@@ -232,8 +299,8 @@ def random_events(game):
             game['drugs'][event['drug']] += min(event.get('add', 0), get_room(game))
             messages.append(event['message'])
     if messages:
-        return reply(game, ['News Flash'] + messages + ['ok quit'], ok=loan_shark_event)
-    return loan_shark_event(game)
+        return reply(game, ['News Flash'] + messages + ['ok quit'], ok=shark_event)
+    return shark_event(game)
 
 def buy_gun(game):
     if game['cash'] < 400:
@@ -260,8 +327,8 @@ def repay(game):
 def borrow(game):
     raise NotImplementedError#XXX
 
-def loan_shark(game):
-    return reply(game, loan_shark_messages(game), done=bank_event, repay=repay, borrow=borrow)
+def shark(game):
+    return reply(game, shark_messages(game), done=bank_event, repay=repay, borrow=borrow)
 
 def withdraw(game):
     raise NotImplementedError#XXX
@@ -277,9 +344,9 @@ def bank_event(game):
         return reply(game, bank_event_messages(game), yes=bank, no=trade)
     return trade(game)
 
-def loan_shark_event(game):
+def shark_event(game):
     if game['location'] == 'Bronx':
-        return reply(game, loan_shark_event_messages(game), yes=loan_shark, no=bank_event)
+        return reply(game, shark_event_messages(game), yes=shark, no=bank_event)
     return bank_event(game)
 
 def coat_event(game):
