@@ -54,48 +54,48 @@ events = [
 def get_messages(game):
     messages = {
         'start': [location_messages, slider(locations)],
-        'trade': [location_message, price_messages, cash_message, debt_message, bank_message, coat_message, guns_messages, days_message, 'buy sell jet'],
-        'jet': [location_messages, location_message, slider(locations) + ' cancel'],
-        'buy': ['Buy Drugs', price_messages, cash_message, slider(drugs) + ' cancel'],
-        'sell': ['Sell Drugs', price_messages, cash_message, slider(drugs) + ' cancel'],
+        'trade': [location_message, price_messages, cash_message, debt_message, bank_message, coat_message, guns_messages, days_message, '/buy /sell /jet'],
+        'jet': [location_messages, location_message, slider(locations) + ' /cancel'],
+        'buy': ['Buy Drugs', price_messages, cash_message, slider(drugs) + ' /cancel'],
+        'sell': ['Sell Drugs', price_messages, cash_message, slider(drugs) + ' /cancel'],
         'buy_drug': [buy_drug_messages],
         'sell_drug': [sell_drug_messages],
-        'coat_event': ['Buy a Bigger Coat', 'Would you like to buy a trenchcoat with more pockets for $200?', 'no yes'],
-        'gun_event': ['Buy a Gun', 'Would you like to buy a gun for $400?', 'no yes'],
-        'lack_money': ["Money", "You do not have that much money.", "ok"],
-        'no_cash': ['Buy Drugs', 'You cannot afford any of that drug.', 'ok'],
-        'no_room': ['Buy Drugs', 'You do not have enough room in your trenchcoat.', 'ok'],
-        'no_sellers': ['Nobody is selling that drug here.', 'ok'],
-        'over_sell': ['Sell Drugs', "You don't have that much of that drug to sell.", 'ok'],
-        'no_buyers': ['Nobody wants to buy that drug here.', 'ok'],
-        'no_drugs': ['You do not have any of that drug to sell.', 'ok'],
-        'news': ['News Flash', news_messages, 'ok'],
-        'bank': ['Bank Options', 'What would you like to do at the Bank?', cash_message, bank_message, 'done withdraw deposit'],
-        'shark': ['Loan Shark Options', 'What would you like to do?', cash_message, debt_message, 'done repay borrow'],
-        'bank_event': ['Bank', 'Would you like to visit the Bank?', cash_message, bank_message, 'no yes'],
-        'shark_event': ['Loan Shark', 'Would you like to visit the Loan Shark?', cash_message, debt_message, 'no yes'],
+        'coat_event': ['Buy a Bigger Coat', 'Would you like to buy a trenchcoat with more pockets for $200?', '/no /yes'],
+        'gun_event': ['Buy a Gun', 'Would you like to buy a gun for $400?', '/no /yes'],
+        'lack_money': ["Money", "You do not have that much money.", "/ok"],
+        'no_cash': ['Buy Drugs', 'You cannot afford any of that drug.', '/ok'],
+        'no_room': ['Buy Drugs', 'You do not have enough room in your trenchcoat.', '/ok'],
+        'no_sellers': ['Nobody is selling that drug here.', '/ok'],
+        'over_sell': ['Sell Drugs', "You don't have that much of that drug to sell.", '/ok'],
+        'no_buyers': ['Nobody wants to buy that drug here.', '/ok'],
+        'no_drugs': ['You do not have any of that drug to sell.', '/ok'],
+        'news': ['News Flash', news_messages, '/ok'],
+        'bank': ['Bank Options', 'What would you like to do at the Bank?', cash_message, bank_message, '/done /withdraw /deposit'],
+        'shark': ['Loan Shark Options', 'What would you like to do?', cash_message, debt_message, '/done /repay /borrow'],
+        'bank_event': ['Bank', 'Would you like to visit the Bank?', cash_message, bank_message, '/no /yes'],
+        'shark_event': ['Loan Shark', 'Would you like to visit the Loan Shark?', cash_message, debt_message, '/no /yes'],
         'withdraw': ['Bank', 'How much would you like to withdraw?', cash_message, bank_message, withdraw_option_message],
         'deposit': ['Bank', 'How much would you like to deposit?', cash_message, bank_message, deposit_option_message],
         'repay': ['Loan Shark', 'How much would you like to repay?', cash_message, debt_message, repay_option_message],
         'borrow': ['Loan Shark', 'How much would you like to borrow?', cash_message, debt_message, borrow_option_message],
-        'lack_bank': ['Money', 'You do not have that much money in the bank.', 'ok'],
-        'over_pay': ['Money', 'You should not overpay the Loan Shark.', 'ok'],
-        'no_more_loans': ['Loan Shark', 'The Loan Shark will not loan you any more money today.', 'ok'],
-        'borrow_limit': ['Credit Risk', 'The Loan Shark is unwilling to loan you that much money.', borrow_limit_message, 'ok'],
-        'no_debt': ['Money', 'You do not have any debt.', 'ok'],
-        'fuzz': ['Police', chase_message, 'What do you do?', 'run fight'],
-        'no_gun': ['Gun', 'You do not have a gun.', 'ok'],
-        'ran': ['Police', 'You lost them in the alleys.', 'ok'],
-        'miss': ['Police', 'You shot at the cops, but missed.', 'ok'],
-        'hit': ['Police', 'You shot and killed one of the cops.', 'ok'],
-        'kill': ['Police', 'The cops shot you.', 'You died.', 'ok'],
-        'remain': ['Police', still_chase_message, 'What do you do?', 'run fight'],
-        'missed': ['Police', 'The cops shot at you, but missed.', 'ok'],
-        'wounded': ['Police', 'The cops shot you, and you are wounded.', 'ok'],
-        'seize': ['Busted!', 'The cops seized all your dope and half your cash.', 'ok'],
-        'caught': ['Police', 'You ran into a dead end, and the cops found you.', 'ok'],
-        'achive_highscore': ['New High Score', 'You have achieved a new high score!', 'ok'],
-        'finish': ['Game Over', final_cash_message, gameover_messages, highscore_messages, 'start']
+        'lack_bank': ['Money', 'You do not have that much money in the bank.', '/ok'],
+        'over_pay': ['Money', 'You should not overpay the Loan Shark.', '/ok'],
+        'no_more_loans': ['Loan Shark', 'The Loan Shark will not loan you any more money today.', '/ok'],
+        'borrow_limit': ['Credit Risk', 'The Loan Shark is unwilling to loan you that much money.', borrow_limit_message, '/ok'],
+        'no_debt': ['Money', 'You do not have any debt.', '/ok'],
+        'fuzz': ['Police', chase_message, 'What do you do?', '/run /fight'],
+        'no_gun': ['Gun', 'You do not have a gun.', '/ok'],
+        'ran': ['Police', 'You lost them in the alleys.', '/ok'],
+        'miss': ['Police', 'You shot at the cops, but missed.', '/ok'],
+        'hit': ['Police', 'You shot and killed one of the cops.', '/ok'],
+        'kill': ['Police', 'The cops shot you.', 'You died.', '/ok'],
+        'remain': ['Police', still_chase_message, 'What do you do?', '/run /fight'],
+        'missed': ['Police', 'The cops shot at you, but missed.', '/ok'],
+        'wounded': ['Police', 'The cops shot you, and you are wounded.', '/ok'],
+        'seize': ['Busted!', 'The cops seized all your dope and half your cash.', '/ok'],
+        'caught': ['Police', 'You ran into a dead end, and the cops found you.', '/ok'],
+        'achive_highscore': ['New High Score', 'You have achieved a new high score!', '/ok'],
+        'finish': ['Game Over', final_cash_message, gameover_messages, highscore_messages, '/start']
     }[game['state']]
     def flatten(a):
         return [j for i in a for j in (i if isinstance(i, list) else [i])]
@@ -107,7 +107,7 @@ def buy_drug_messages(game):
         "At %d each, you can afford %s" % (game['prices'][game['drug']], get_display_max(game)),
         "How many do you want to buy?",
         cash_message(game),
-        "0-%d cancel max" % get_max_buy(game)
+        "0-%d /cancel /max" % get_max_buy(game)
     ]
 
 def sell_drug_messages(game):
@@ -116,7 +116,7 @@ def sell_drug_messages(game):
         "You can sell up to %d at %d each." % (game['drugs'][game['drug']], game['prices'][game['drug']]),
         "How many do you want to sell?",
         cash_message(game),
-        "0-%d cancel max" % game['drugs'][game['drug']]
+        "0-%d /cancel /max" % game['drugs'][game['drug']]
     ]
 
 def news_messages(game):
@@ -126,12 +126,12 @@ def final_cash_message(game):
     return "Final Cash: %s$%d" % ('-' if game['cash'] < 0 else '', abs(game['cash']))
 
 def location_messages(game):
-    return ['Where to, dude?'] + ["%d %s" % pair for pair in enumerate(locations, 1)]
+    return ['Where to, dude?'] + ["/%d %s" % pair for pair in enumerate(locations, 1)]
 
 def price_messages(game):
     def price_message(i, drug):
         price = "$%d" % game['prices'][drug] if game['prices'][drug] else 'None'
-        return "%d %s %s you have %d" % (i, drug, price, game['drugs'][drug])
+        return "/%d %s %s you have %d" % (i, drug, price, game['drugs'][drug])
     return [price_message(*item) for item in enumerate(drugs, 1)]
 
 def borrow_limit_message(game):
@@ -521,7 +521,7 @@ def start(game):
     return reply(game, 'start', [jet_location])
 
 def play(name, command):
-    game = dict(games.setdefault(name, {'name': name, 'options': []}), input=command)
+    game = dict(games.setdefault(name, {'name': name, 'options': []}), input=command.lstrip('/'))
     for option in make_options(game['options'], start=start):
         temp = option(game)
         if temp:
