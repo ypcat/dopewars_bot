@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
 import os
+import sys
+
 import telegram
 import dopewars
 
 def main():
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+    sys.stderr = codecs.getwriter('utf8')(sys.stderr)
     token_file = os.path.join(os.path.dirname(__file__), 'token')
     bot = telegram.Bot(open(token_file).read().strip())
     update_id = 0
