@@ -138,16 +138,16 @@ def borrow_limit_message(game):
     return 'He will loan you a maximum of $%d' % get_max_loan(game)
 
 def repay_option_message(game):
-    return "0-%d cancel max" % get_max_repay(game)
+    return "0-%d /cancel /max" % get_max_repay(game)
 
 def borrow_option_message(game):
-    return "0-%d cancel max" % get_max_loan(game)
+    return "0-%d /cancel /max" % get_max_loan(game)
 
 def withdraw_option_message(game):
-    return "0-%d cancel max" % get_max_withdraw(game)
+    return "0-%d /cancel /max" % get_max_withdraw(game)
 
 def deposit_option_message(game):
-    return "0-%d cancel max" % get_max_deposit(game)
+    return "0-%d /cancel /max" % get_max_deposit(game)
 
 def chase_message(game):
     return "Officer Hardass %s chasing you!" % cops_message(game)
