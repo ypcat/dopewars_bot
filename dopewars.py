@@ -403,14 +403,14 @@ def finish_event(game):
 def seize(game):
     game['drugs'] = empty()
     game['cash'] /= 2
-    return reply(game, 'seize', ok=trade)
+    return reply(game, 'seize', ok=finish_event)
 
 def run(game):
     if dice(3):
         if dice(5):
             return reply(game, 'caught', ok=seize)
         return remain(game)
-    return reply(game, 'ran', ok=trade)
+    return reply(game, 'ran', ok=finish_event)
 
 def shot(game):
     if dice(5):
@@ -425,7 +425,7 @@ def fight(game):
         return reply(game, 'no_gun', ok=remain)
     if dice(4):
         game['cops'] -= 1
-        return reply(game, 'hit', ok=shot if game['cops'] else trade)
+        return reply(game, 'hit', ok=shot if game['cops'] else finish_event)
     return reply(game, 'miss', ok=shot)
 
 def remain(game):
