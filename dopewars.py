@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # TODO help
+# TODO enter name for highscore
 
 import json
 import os

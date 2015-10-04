@@ -23,8 +23,8 @@ def main():
                 chat_id = update.message.chat_id
                 text = update.message.text.encode('utf8')
                 name = update.message.from_user.name
-                print name, text
-                messages = dopewars.play(name, text.split('@')[0])
+                print name, chat_id, text
+                messages = dopewars.play(chat_id, text.split('@')[0])
                 if messages:
                     text = '\n'.join(messages)
                     print text
