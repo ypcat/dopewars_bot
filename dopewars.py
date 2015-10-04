@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-# TODO deposit
-# TODO withdraw
-# TODO payback
-# TODO borrow
+# TODO deposit clause
+# TODO withdraw clause
+# TODO payback clause
+# TODO borrow clause
 # TODO fuzz
 # TODO buy clause
 # TODO sell clause
@@ -66,9 +66,9 @@ def trade_messages(game):
     ] + price_messages(game) + [
         cash_message(game),
         debt_message(game),
-        "Savings: $%d" % game['bank'],
-        "Coat: %d/%d" % (get_total(game), game['coat'])
-    ] + (['Gun'] if game['guns'] else []) + [
+        bank_message(game),
+        coat_message(game)
+    ] + gun_messages(game) + [
         "Time remaining: %d day%s" %(game['days'], 's' if game['days'] > 1 else ''),
         'buy sell jet quit'
     ]
@@ -112,7 +112,7 @@ def sell_messages(game):
 def coat_event_messages(game):
     return ['Buy a Bigger Coat', 'Would you like to buy a trenchcoat with more pockets for $200?', 'no yes quit']
 
-def gun_messages(game):
+def gun_event_messages(game):
     return ['Buy a Gun', 'Would you like to buy a gun for $400?', 'no yes quit']
 
 def lack_money_messages(game):
@@ -155,10 +155,22 @@ def shark_messages(game):
     ]
 
 def bank_event_messages(game):
-    return ['Bank', 'Would you like to visit the Bank?', 'no yes quit']
+    return [
+        'Bank',
+        'Would you like to visit the Bank?',
+        cash_message(game),
+        bank_message(game),
+        'no yes quit'
+    ]
 
 def bank_messages(game):
-    return ['Bank Options', 'What would you like to do at the Bank?', 'done withdraw deposit quit']
+    return [
+        'Bank Options',
+        'What would you like to do at the Bank?',
+        cash_message(game),
+        bank_message(game),
+        'done withdraw deposit quit'
+    ]
 
 def enter_highscore_messages(game):
     return ['New High Score', 'You have achieved a new high score!', 'ok quit']
@@ -199,6 +211,24 @@ def borrow_messages(game):
         cash_message(game),
         debt_message(game),
         "0-%d cancel max quit" % get_max_loan(game)
+    ]
+
+def withdraw_messages(game):
+    return [
+        'Bank',
+        'How much would you like to withdraw?',
+        cash_message(game),
+        bank_message(game),
+        "0-%d cancel max quit" % get_max_withdraw(game)
+    ]
+
+def deposit_messages(game):
+    return [
+        'Bank',
+        'How much would you like to deposit?',
+        cash_message(game),
+        bank_message(game),
+        "0-%d cancel max quit" % get_max_deposit(game)
     ]
 
 def no_gun_messages(game):
@@ -269,6 +299,15 @@ def cash_message(game):
 def debt_message(game):
     return "Debt: $%d" % game['debt']
 
+def bank_message(game):
+    return "Savings: $%d" % game['bank']
+
+def coat_message(game):
+    return "Coat: %d/%d" % (get_total(game), game['coat'])
+
+def gun_messages(game):
+    return ['Gun'] if game['guns'] else []
+
 def cops_message(game):
     return ''
 
@@ -293,6 +332,12 @@ def get_max_repay(game):
 
 def get_max_loan(game):
     return min(max(game['cash'] * 30, 5500), max(999999999 - game['cash'], 0))
+
+def get_max_withdraw(game):
+    return game['bank']
+
+def get_max_deposit(game):
+    return game['cash']
 
 def get_prices(leaveout=3):
     prices = {drug: random.randint(*price_range[drug]) for drug in drugs}
@@ -355,7 +400,7 @@ def buy_gun(game):
 
 def gun_event(game):
     if game['guns'] == 0 and dice(10):
-        return reply(game, gun_messages(game), yes=buy_gun, no=random_events)
+        return reply(game, gun_event_messages(game), yes=buy_gun, no=random_events)
     return random_events(game)
 
 def buy_coat(game):
@@ -386,6 +431,24 @@ def borrow_amount(game):
         game['loan'] = 1 if amount > 0 else game['loan']
         return shark(game)
 
+def withdraw_amount(game):
+    amount = get_amount(game, max=get_max_withdraw)
+    if amount >= 0:
+        if amount > game['bank']:
+            return reply(game, lack_bank_messages(game), ok=bank)
+        game['cash'] += amount
+        game['bank'] -= amount
+        return bank(game)
+
+def deposit_amount(game):
+    amount = get_amount(game, max=get_max_deposit)
+    if amount >= 0:
+        if amount > game['cash']:
+            return reply(game, lack_money_messages(game), ok=bank)
+        game['cash'] -= amount
+        game['bank'] += amount
+        return bank(game)
+
 def repay(game):
     if game['debt'] == 0:
         return reply(game, no_debt_messages(game), ok=shark)
@@ -397,10 +460,10 @@ def borrow(game):
     return reply(game, borrow_messages(game), [borrow_amount], cancel=shark)
 
 def withdraw(game):
-    raise NotImplementedError#XXX
+    return reply(game, withdraw_messages(game), [withdraw_amount], cancel=bank)
 
 def deposit(game):
-    raise NotImplementedError#XXX
+    return reply(game, deposit_messages(game), [deposit_amount], cancel=bank)
 
 def bank(game):
     return reply(game, bank_messages(game), done=trade, withdraw=withdraw, deposit=deposit)
