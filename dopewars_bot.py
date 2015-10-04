@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import codecs
 import os
 import sys
 
