@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
+import os
 import telegram
 import dopewars
 
 def main():
-    bot = telegram.Bot(open('token').read().strip())
+    token_file = os.path.join(os.path.dirname(__file__), 'token')
+    bot = telegram.Bot(open(token_file).read().strip())
     update_id = 0
     while True:
         for update in bot.getUpdates(offset=update_id, timeout=60):
