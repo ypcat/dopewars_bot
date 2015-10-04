@@ -7,8 +7,9 @@
 # TODO buy clause
 # TODO sell clause
 # TODO jet clause
-# TODO high score
 
+import json
+import os
 import random
 
 __all__ = ['play']
@@ -93,7 +94,7 @@ def get_messages(game):
         'wounded': ['Police', 'The cops shot you, and you are wounded.', 'ok'],
         'seize': ['Busted!', 'The cops seized all your dope and half your cash.', 'ok'],
         'caught': ['Police', 'You ran into a dead end, and the cops found you.', 'ok'],
-        'enter_highscore': ['New High Score', 'You have achieved a new high score!', 'ok'],
+        'achive_highscore': ['New High Score', 'You have achieved a new high score!', 'ok'],
         'finish': ['Game Over', final_cash_message, gameover_messages, highscore_messages, 'start']
     }[game['state']]
     def flatten(a):
@@ -122,7 +123,7 @@ def news_messages(game):
     return game['news']
 
 def final_cash_message(game):
-    return "Final Cash: %s$%d" % ('-' if game['cash'] < 0 else '', abs(game['cash'])),
+    return "Final Cash: %s$%d" % ('-' if game['cash'] < 0 else '', abs(game['cash']))
 
 def location_messages(game):
     return ['Where to, dude?'] + ["%d %s" % pair for pair in enumerate(locations, 1)]
@@ -162,7 +163,9 @@ def gameover_messages(game):
             ["You didn't make any money!", 'Better luck next time.'])
 
 def highscore_messages(game):
-    return ['High Scores'] #XXX
+    def highscore_message(i, d):
+        return "%d %s %d" % (i, d['name'], d['score'])
+    return ['High Scores'] + [highscore_message(i, d) for i, d in enumerate(get_highscores(), 1)]
 
 def location_message(game):
     return "Current Location: %s" % game['location']
@@ -238,6 +241,26 @@ def dice(n):
 def slider(items):
     return "1-%d" % len(items)
 
+def get_highscore_file():
+    return os.path.join(os.path.dirname(__file__), 'highscore.json')
+
+def get_highscores():
+    try:
+        return json.load(open(get_highscore_file()))
+    except:
+        return []
+
+def update_highscore(game):
+    if game['cash'] > 0:
+        scores = get_highscores() + [{'name': game['name'], 'score': game['cash']}]
+        with open(get_highscore_file(), 'w') as fp:
+            json.dump(sorted(scores, key=lambda d: d['score'], reverse=1)[:10], fp, indent=4)
+
+def achive_highscore(game):
+    highscores = get_highscores()
+    if len(highscores) < 10 or game['cash'] > highscores[-1]['score']:
+        return True
+
 def make_options(options=[], **kw):
     return options + [lambda game: kw.get(game['input'], lambda game: None)(game)]
 
@@ -251,12 +274,18 @@ def get_amount(game, **kw):
 def trade(game):
     return reply(game, 'trade', buy=buy, sell=sell, jet=jet)
 
+def confirm_highscore(game):
+    return reply(game, 'finish')
+
 def finish(game):
     game['cash'] += game['bank'] - game['debt']
     game['prices'] = get_prices(0)
     for drug in drugs:
         game['cash'] += game['prices'][drug] * game['drugs'].get(drug, 0)
         game['drugs'][drug] = 0
+    if achive_highscore(game):
+        update_highscore(game)
+        return reply(game, 'achive_highscore', ok=confirm_highscore)
     return reply(game, 'finish')
 
 def news(game):
@@ -492,7 +521,7 @@ def start(game):
     return reply(game, 'start', [jet_location])
 
 def play(name, command):
-    game = dict(games.setdefault(name, {'options': []}), input=command)
+    game = dict(games.setdefault(name, {'name': name, 'options': []}), input=command)
     for option in make_options(game['options'], start=start):
         temp = option(game)
         if temp:
@@ -500,6 +529,7 @@ def play(name, command):
             if game['state'] == 'finish':
                 del games[name]
             return get_messages(game)
+    return []
 
 def main():
     command = 'start'
