@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 
-# TODO deposit clause
-# TODO withdraw clause
-# TODO payback clause
-# TODO borrow clause
-# TODO buy clause
-# TODO sell clause
-# TODO jet clause
+# TODO help
 
 import json
 import os
@@ -261,18 +255,21 @@ def achive_highscore(game):
     if len(highscores) < 10 or game['cash'] > highscores[-1]['score']:
         return True
 
+def skip(game):
+    pass
+
 def make_options(options=[], **kw):
-    return options + [lambda game: kw.get(game['input'], lambda game: None)(game)]
+    return options + [lambda game: kw.get(game['input'], skip)(game)]
 
 def reply(game, state, options=[], **kw):
-    return dict(game, options=make_options(options, **kw), state=state)
+    return dict(game, options=make_options(options, **kw), state=state, choices=kw)
 
 def get_amount(game, **kw):
     return (int(game['input']) if game['input'].isdigit() else
             kw.get(game['input'], lambda game: -1)(game))
 
 def trade(game):
-    return reply(game, 'trade', buy=buy, sell=sell, jet=jet)
+    return reply(game, 'trade', [buy_clause, sell_clause, jet_clause], buy=buy, sell=sell, jet=jet)
 
 def confirm_highscore(game):
     return reply(game, 'finish')
@@ -358,6 +355,12 @@ def deposit_amount(game):
         game['bank'] += amount
         return bank(game)
 
+def withdraw(game):
+    return reply(game, 'withdraw', [withdraw_amount], cancel=bank)
+
+def deposit(game):
+    return reply(game, 'deposit', [deposit_amount], cancel=bank)
+
 def repay(game):
     if game['debt'] == 0:
         return reply(game, 'no_debt', ok=shark)
@@ -368,17 +371,23 @@ def borrow(game):
         return reply(game, 'no_more_loans', ok=shark)
     return reply(game, 'borrow', [borrow_amount], cancel=shark)
 
-def withdraw(game):
-    return reply(game, 'withdraw', [withdraw_amount], cancel=bank)
+def withdraw_clause(game):
+    return clause(game, 'withdraw', [None, withdraw_amount])
 
-def deposit(game):
-    return reply(game, 'deposit', [deposit_amount], cancel=bank)
+def deposit_clause(game):
+    return clause(game, 'deposit', [None, deposit_amount])
+
+def repay_clause(game):
+    return clause(game, 'repay', [repay, repay_amount])
+
+def borrow_clause(game):
+    return clause(game, 'borrow', [borrow, borrow_amount])
 
 def bank(game):
-    return reply(game, 'bank', done=trade, withdraw=withdraw, deposit=deposit)
+    return reply(game, 'bank', [withdraw_clause, deposit_clause], done=trade, withdraw=withdraw, deposit=deposit)
 
 def shark(game):
-    return reply(game, 'shark', done=bank_event, repay=repay, borrow=borrow)
+    return reply(game, 'shark', [repay_clause, borrow_clause], done=bank_event, repay=repay, borrow=borrow)
 
 def bank_event(game):
     if game['location'] == 'Bronx':
@@ -498,6 +507,25 @@ def sell(game):
 
 def jet(game):
     return reply(game, 'jet', [jet_location], cancel=trade)
+
+def buy_clause(game):
+    return clause(game, 'buy', [None, buy_drug, buy_amount])
+
+def sell_clause(game):
+    return clause(game, 'sell', [None, sell_drug, sell_amount])
+
+def clause(game, arg0, options):
+    args = game['input'].split()
+    if args[0] == arg0:
+        for arg, option in map(None, args, options): # zip
+            if arg and callable(option):
+                game = option(dict(game, input=arg))
+                if not game or 'ok' in game['choices']:
+                    return game
+        return game
+
+def jet_clause(game):
+    return clause(game, 'jet', [None, jet_location])
 
 def start(game):
     game.update({

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# TODO reply markup
+
 import codecs
 import os
 import sys
