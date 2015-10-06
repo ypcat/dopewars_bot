@@ -517,7 +517,7 @@ def sell_clause(game):
 
 def clause(game, arg0, options):
     args = game['input'].split()
-    if args[0] == arg0:
+    if len(args) > 1 and args[0] == arg0:
         for arg, option in map(None, args, options): # zip
             if arg and callable(option):
                 game = option(dict(game, input=arg))
