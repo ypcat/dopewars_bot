@@ -51,8 +51,8 @@ def get_messages(game):
         'start': [location_messages, slider(locations)],
         'trade': [location_message, price_messages, cash_message, debt_message, bank_message, coat_message, guns_messages, days_message, '/buy /sell /jet'],
         'jet': [location_messages, location_message, slider(locations) + ' /cancel'],
-        'buy': ['Buy Drugs', price_messages, cash_message, slider(drugs) + ' /cancel'],
-        'sell': ['Sell Drugs', price_messages, cash_message, slider(drugs) + ' /cancel'],
+        'buy': ['Buy Drugs', drug_messages, cash_message, slider(drugs) + ' /cancel'],
+        'sell': ['Sell Drugs', drug_messages, cash_message, slider(drugs) + ' /cancel'],
         'buy_drug': [buy_drug_messages],
         'sell_drug': [sell_drug_messages],
         'coat_event': ['Buy a Bigger Coat', 'Would you like to buy a trenchcoat with more pockets for $200?', '/no /yes'],
@@ -96,13 +96,16 @@ def get_messages(game):
         return [j for i in a for j in (i if isinstance(i, list) else [i])]
     return flatten([m(game) if callable(m) else m for m in messages])
 
+def amount_message(max):
+    return ' '.join(["0-%d" % max] + ["/%d" % x for x in sorted(set([max / 10, max * 3 / 10, max * 5 / 10])) if x])
+
 def buy_drug_messages(game):
     return [
         "Buy %s" % game['drug'],
         "At %d each, you can afford %s" % (game['prices'][game['drug']], get_display_max(game)),
         "How many do you want to buy?",
         cash_message(game),
-        "0-%d /cancel /max" % get_max_buy(game)
+        "%s /cancel /max" % amount_message(get_max_buy(game))
     ]
 
 def sell_drug_messages(game):
@@ -111,7 +114,7 @@ def sell_drug_messages(game):
         "You can sell up to %d at %d each." % (game['drugs'][game['drug']], game['prices'][game['drug']]),
         "How many do you want to sell?",
         cash_message(game),
-        "0-%d /cancel /max" % game['drugs'][game['drug']]
+        "%s /cancel /max" % amount_message(game['drugs'][game['drug']])
     ]
 
 def news_messages(game):
@@ -123,26 +126,30 @@ def final_cash_message(game):
 def location_messages(game):
     return ['Where to, dude?'] + ["/%d %s" % pair for pair in enumerate(locations, 1)]
 
+def drug_message(game, drug):
+    price = "$%d" % game['prices'][drug] if game['prices'][drug] else 'None'
+    return "%s %s (%d)" % (drug, price, game['drugs'][drug])
+
+def drug_messages(game):
+    return ["/%d %s" % (i, drug_message(game, drug)) for i, drug in enumerate(drugs, 1)]
+
 def price_messages(game):
-    def price_message(i, drug):
-        price = "$%d" % game['prices'][drug] if game['prices'][drug] else 'None'
-        return "/%d %s %s you have %d" % (i, drug, price, game['drugs'][drug])
-    return [price_message(*item) for item in enumerate(drugs, 1)]
+    return ["/buy_%d /sell_%d%s %s" % (i, i, ('_max' if game['prices'][drug] > price_range[drug][1] else ''), drug_message(game, drug)) for i, drug in enumerate(drugs, 1)]
 
 def borrow_limit_message(game):
     return 'He will loan you a maximum of $%d' % get_max_loan(game)
 
 def repay_option_message(game):
-    return "0-%d /cancel /max" % get_max_repay(game)
+    return "%s /cancel /max" % amount_message(get_max_repay(game))
 
 def borrow_option_message(game):
-    return "0-%d /cancel /max" % get_max_loan(game)
+    return "%s /cancel /max" % amount_message(get_max_loan(game))
 
 def withdraw_option_message(game):
-    return "0-%d /cancel /max" % get_max_withdraw(game)
+    return "%s /cancel /max" % amount_message(get_max_withdraw(game))
 
 def deposit_option_message(game):
-    return "0-%d /cancel /max" % get_max_deposit(game)
+    return "%s /cancel /max" % amount_message(get_max_deposit(game))
 
 def chase_message(game):
     return "Officer Hardass %s chasing you!" % cops_message(game)
@@ -266,8 +273,10 @@ def reply(game, state, options=[], **kw):
     return dict(game, options=make_options(options, **kw), state=state, choices=kw)
 
 def get_amount(game, **kw):
-    return (int(game['input']) if game['input'].isdigit() else
-            kw.get(game['input'], lambda game: -1)(game))
+    i = game['input']
+    return (int(i) if i.isdigit() else
+            int(i[:-1]) * kw.get('max', 0) / 100 if i[:-1].isdigit() and i[-1] == '%' else
+            kw.get(i, lambda game: -1)(game))
 
 def trade(game):
     return reply(game, 'trade', [buy_clause, sell_clause, jet_clause], buy=buy, sell=sell, jet=jet)
@@ -516,7 +525,7 @@ def sell_clause(game):
     return clause(game, 'sell', [None, sell_drug, sell_amount])
 
 def clause(game, arg0, options):
-    args = game['input'].split()
+    args = game['input'].replace('_', ' ').split()
     if len(args) > 1 and args[0] == arg0:
         for arg, option in map(None, args, options): # zip
             if arg and callable(option):
