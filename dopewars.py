@@ -97,7 +97,7 @@ def get_messages(game):
     return flatten([m(game) if callable(m) else m for m in messages])
 
 def amount_message(max):
-    return ' '.join(["0-%d" % max] + ["/%d" % x for x in sorted(set([max / 10, max * 3 / 10, max * 5 / 10])) if x])
+    return ' '.join(["1-%d" % max] + ["/%d" % x for x in sorted(set([max / 10, max * 3 / 10, max * 5 / 10])) if x])
 
 def buy_drug_messages(game):
     return [
