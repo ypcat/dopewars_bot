@@ -13,12 +13,12 @@ games = {}
 
 locations = ['Bronx', 'Ghetto', 'Central Park', 'Manhattan', 'Coney Island', 'Brooklyn']
 
-drugs = ['Acid', 'Cocaine', 'Ludes', 'PCP', 'Heroin', 'Weed', 'Shrooms', 'Speed']
+drugs = ['Acid', 'Cocaine', 'Ecstasy', 'PCP', 'Heroin', 'Weed', 'Shrooms', 'Speed']
 
 price_range = {
     'Acid': (1000, 4500),
     'Cocaine': (15000, 30000),
-    'Ludes': (10, 60),
+    'Ecstasy': (10, 60),
     'PCP': (1000, 3500),
     'Heroin': (5000, 14000),
     'Weed': (300, 900),
@@ -30,7 +30,7 @@ events = [
     {'freq': 13, 'mul': 4, 'drug': 'Weed', 'message': "The cops just did a big Weed bust! Prices are sky-high!"},
     {'freq': 20, 'mul': 4, 'drug': 'PCP', 'message': "The cops just did a big PCP bust! Prices are sky-high!"},
     {'freq': 25, 'mul': 4, 'drug': 'Heroin', 'message': "The cops just did a big Heroin bust! Prices are sky-high!"},
-    {'freq': 13, 'mul': 4, 'drug': 'Ludes', 'message': "The cops just did a big Ludes bust! Prices are sky-high!"},
+    {'freq': 13, 'mul': 4, 'drug': 'Ecstasy', 'message': "The cops just did a big Ecstasy bust! Prices are sky-high!"},
     {'freq': 35, 'mul': 4, 'drug': 'Cocaine', 'message': "The cops just did a big Cocaine bust! Prices are sky-high!"},
     {'freq': 15, 'mul': 4, 'drug': 'Speed', 'message': "The cops just did a big Speed bust! Prices are sky-high!"},
     {'freq': 25, 'mul': 8, 'drug': 'Heroin', 'message': "Addicts are buying Heroin at outrageous prices!"},
@@ -40,7 +40,7 @@ events = [
     {'freq': 35, 'mul': 8, 'drug': 'Cocaine', 'message': "Addicts are buying Cocaine at outrageous prices!"},
     {'freq': 17, 'div': 8, 'drug': 'Acid', 'message': "The market has been flooded with cheap home-made Acid!"},
     {'freq': 10, 'div': 4, 'drug': 'Weed', 'message': "A Columbian freighter dusted the Coast Guard! Weed prices have bottomed out!"},
-    {'freq': 11, 'div': 8, 'drug': 'Ludes', 'message': "A gang raided a local pharmacy and are selling cheap Ludes!"},
+    {'freq': 11, 'div': 8, 'drug': 'Ecstasy', 'message': "A gang raided a local pharmacy and are selling cheap Ecstasy!"},
     {'freq': 55, 'add': 3, 'drug': 'Cocaine', 'message': "You found some Cocaine on a dead dude in the subway!"},
     {'freq': 45, 'add': 6, 'drug': 'Acid', 'message': "You found some Acid on a dead dude in the subway!"},
     {'freq': 35, 'add': 4, 'drug': 'PCP', 'message': "You found some PCP on a dead dude in the subway!"}
