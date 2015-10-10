@@ -21,7 +21,7 @@ def main():
             for update in bot.getUpdates(offset=update_id+1, timeout=60):
                 update_id = update.update_id
                 chat_id = update.message.chat_id
-                text = update.message.text.encode('utf8')
+                text = update.message.text
                 name = update.message.from_user.name
                 print name, chat_id, text
                 messages = dopewars.play(chat_id, text.split('@')[0])
